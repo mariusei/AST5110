@@ -47,10 +47,20 @@ class advection:
         self.rho_next   = rho_next
         self.delta      = delta
 
-        if mname == 'staggered_leapfrog'
+        if mname == 'staggered_leapfrog':
+            # Construct N * 2 dim array to hold time step
+            # n-2 and n-1 needed to find time step n
+            self.rho_tmp = zeros((N,2), float)
+            self.rho_tmp[:,0] = rho
+            self.rho_tmp[:,1] = rho
+            self.delta = vz * dt / dz
+        if mname == 'upwind':
+            self.delta = vz * dt / dz
 
     def step(self):
         rho_next, rho = self.rho_next, self.rho
+        if self.mname == 'staggered_leapfrog':
+            rho_tmp = self.rho_tmp
         
         if self.mname   == 'FTCS':
             for iz in xrange(1,self.N-1):
@@ -62,7 +72,20 @@ class advection:
                         - self.delta * ( rho[iz+1] - rho[iz-1] )
 
         elif self.mname == 'staggered_leapfrog':
-            
+            for iz in xrange(1,self.N-1):
+                self.rho_next[iz] = rho_tmp[iz,0] \
+                        - self.delta * ( rho_tmp[iz+1,1] - rho_tmp[iz-1,1])
+            self.rho_tmp[:,0] = rho_tmp[:,1]
+            self.rho_tmp[:,1] = rho_next
+
+        elif self.mname == 'upwind':
+            for iz in xrange(1,self.N-1):
+                if self.vz > 0:
+                    self.rho_next[iz] = rho[iz] \
+                            - self.delta * ( rho[iz] - rho[iz-1] )
+                else:
+                    self.rho_next[iz] = rho[iz] \
+                            - self.delta * ( rho[iz+1] - rho[iz] )
 
         else:
             raise NameError('Wrong method specified: '+str(self.mname))
@@ -75,10 +98,13 @@ class advection:
 
 ftcs = advection(mname='FTCS')
 lax  = advection(mname='lax')  # independent, such as not to mix rho-arrays
+s_leap=advection(mname='staggered_leapfrog')
+upwind=advection(mname='upwind')
 
 # Animation
 
-for method in [ftcs, lax]:
+#for method in [ftcs, lax, s_leap, upwind]:
+for method in [upwind]:
     fig = plt.figure()
     minval = min(method.get_state()[0])
     maxval = max(method.get_state()[1])
