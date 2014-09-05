@@ -12,7 +12,16 @@ from numpy import *
 
 class advection:
     def __init__(self, N = 100, vz  = 1.0, mname = 'FTCS'):
-         
+        
+        # Initialising, using self.variable where self makes the variable
+        # available to the entire instance of the class
+        # e.g. you initialise an instance: 
+        #   mynameofinstance = ADVECTION(mname='staggered_leapfrog')
+        # then you can retrieve N as
+        #   mynameofinstance.N
+        # or call functions
+        #   mynameofinstance.step()
+        
         self.N  = N
         self.vz = vz 
         self.mname = mname 
@@ -27,12 +36,8 @@ class advection:
         rho[:]  = 0.1
         rho[condition] = 1.0
 
-        # FTCS to solve advection eq
-        # Forward in time
-        # Centered in space
-
         t = 0
-        dt = 0.001        # random
+        dt = 0.001      # random
         dz = z[1]-z[0]  # assuming constant z step length
         delta = vz * dt / (2.0 * dz)
 
@@ -41,7 +46,7 @@ class advection:
         rho_next[0]     = rho[0]
         rho_next[N-1]   = rho[N-1]
 
-        # make these available to all class
+        # make these available to entire class
         self.z          = z
         self.rho        = rho
         self.rho_next   = rho_next
@@ -95,20 +100,23 @@ class advection:
     def get_state(self):
         return (self.z, self.rho)
 
-
+# initialise instances of class where mname gives the choice of model
 ftcs = advection(mname='FTCS')
 lax  = advection(mname='lax')  # independent, such as not to mix rho-arrays
 s_leap=advection(mname='staggered_leapfrog')
 upwind=advection(mname='upwind')
 
 # Animation
+# iterate through methods and produce animations
 
-#for method in [ftcs, lax, s_leap, upwind]:
-for method in [upwind]:
+for method in [ftcs, lax, s_leap, upwind]:
+#for method in [upwind]:
+#for method in [s_leap]:
     fig = plt.figure()
     minval = min(method.get_state()[0])
     maxval = max(method.get_state()[1])
 
+    # set up axes and plot empty data set
     ax  = plt.axes(xlim=(minval, maxval), ylim=(-0.5,2))
     line,   = ax.plot([], [], lw=2)
 
@@ -122,9 +130,16 @@ for method in [upwind]:
         line.set_data([], [])
         return line,
 
+    # Do the real animation part
+    # where animation comes from matplotlib.animation
+    # and FuncAnmation requires figure fig, functions animate and init
+    # and blit means only redraw parts that are changing
     anim = animation.FuncAnimation(fig, animate, init_func=init, \
             frames=300, interval=20, blit=True)
 
-    anim.save(method.mname+'.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    # To save, uncomment following line
+    # Requires packages ffmpeg, mencoder and libx264 with dependencies
+    #anim.save(method.mname+'.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
+    # the show goes on forever:
     plt.show()
