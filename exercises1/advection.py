@@ -10,7 +10,7 @@ from numpy import *
 
 # Initialise
 
-class advection:
+class ADVECTION: 
     def __init__(self, N = 100, vz  = 1.0, mname = 'FTCS'):
         
         # Initialising, using self.variable where self makes the variable
@@ -37,9 +37,8 @@ class advection:
         rho[condition] = 1.0
 
         t = 0
-        dt = 0.001      # random
+        scale   = 0.1  # Scaling factor
         dz = z[1]-z[0]  # assuming constant z step length
-        delta = vz * dt / (2.0 * dz)
 
         # boundary conditions
         # Assume locked boundaries
@@ -50,7 +49,14 @@ class advection:
         self.z          = z
         self.rho        = rho
         self.rho_next   = rho_next
-        self.delta      = delta
+
+        if mname == 'FTCS':
+            self.delta = scale * dz
+
+        if mname == 'lax':
+            # Courant criterion
+            dt = scale * dz / abs(vz)
+            self.delta = vz * dt / (2.0 * dz)
 
         if mname == 'staggered_leapfrog':
             # Construct N * 2 dim array to hold time step
@@ -58,9 +64,23 @@ class advection:
             self.rho_tmp = zeros((N,2), float)
             self.rho_tmp[:,0] = rho
             self.rho_tmp[:,1] = rho
+            dt = scale * dz / abs(vz)
             self.delta = vz * dt / dz
         if mname == 'upwind':
+            dt         = scale * dz / abs(vz)
             self.delta = vz * dt / dz
+
+        if mname == 'van_leer':
+            dt          = 0.1 * dz
+            self.delta  = vz * dt / dz
+            # Construct array with twice as many points
+            self.z   = linspace(0,1,2*N, endpoint=False)
+            self.rho = zeros((2*N), float)
+            self.rho[:] = 0.1
+            self.rho[where((self.z > 0.2) & (self.z < 0.3))] = 1.0
+            self.rho_next = self.rho
+
+
 
     def step(self):
         rho_next, rho = self.rho_next, self.rho
@@ -92,6 +112,15 @@ class advection:
                     self.rho_next[iz] = rho[iz] \
                             - self.delta * ( rho[iz+1] - rho[iz] )
 
+        elif self.mname == 'van_leer':
+            for iz in xrange(2,self.N*2-2):
+                self.rho_next[iz] = rho[iz] \
+                        - self.delta * (rho[iz+1] - rho[iz-1] \
+                           + 0.5*(1-self.delta) * (self.slope(rho,iz+1)*rho[iz] \
+                                                   -self.slope(rho,iz-1)*rho[iz]))
+                
+            
+
         else:
             raise NameError('Wrong method specified: '+str(self.mname))
 
@@ -100,18 +129,27 @@ class advection:
     def get_state(self):
         return (self.z, self.rho)
 
+    def slope(self,rho,i):
+        if ( (rho[i] - rho[i-2]) * (rho[i+2] - rho[i]) > 0 ):
+            return 2 * (rho[i]   - rho[i-2]) * (rho[i+2] - rho[i]) \
+                     / (rho[i+2] - rho[i-2])
+        else:
+            return 0
+
 # initialise instances of class where mname gives the choice of model
-ftcs = advection(mname='FTCS')
-lax  = advection(mname='lax')  # independent, such as not to mix rho-arrays
-s_leap=advection(mname='staggered_leapfrog')
-upwind=advection(mname='upwind')
+ftcs        = ADVECTION(mname='FTCS')
+lax         = ADVECTION(mname='lax')  
+s_leap      = ADVECTION(mname='staggered_leapfrog')
+upwind      = ADVECTION(mname='upwind')
+van_leer    = ADVECTION(mname='van_leer')
 
 # Animation
 # iterate through methods and produce animations
 
-for method in [ftcs, lax, s_leap, upwind]:
+#for method in [ftcs, lax, s_leap, upwind]:
 #for method in [upwind]:
 #for method in [s_leap]:
+for method in [van_leer]:
     fig = plt.figure()
     minval = min(method.get_state()[0])
     maxval = max(method.get_state()[1])
@@ -139,7 +177,7 @@ for method in [ftcs, lax, s_leap, upwind]:
 
     # To save, uncomment following line
     # Requires packages ffmpeg, mencoder and libx264 with dependencies
-    #anim.save(method.mname+'.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    anim.save(method.mname+'.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
     # the show goes on forever:
-    plt.show()
+    #plt.show()
