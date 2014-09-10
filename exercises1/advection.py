@@ -36,8 +36,7 @@ class ADVECTION:
         rho[:]  = 0.1
         rho[condition] = 1.0
 
-        t = 0
-        scale   = 0.1  # Scaling factor
+        scale   = 1.0  # Scaling factor
         dz = z[1]-z[0]  # assuming constant z step length
 
         # boundary conditions
@@ -53,12 +52,13 @@ class ADVECTION:
         if mname == 'FTCS':
             self.delta = scale * dz
 
-        if mname == 'lax':
+        elif mname == 'lax':
             # Courant criterion
-            dt = scale * dz / abs(vz)
+            dt =  dz / abs(vz)
             self.delta = vz * dt / (2.0 * dz)
+            print vz * dt / dz 
 
-        if mname == 'staggered_leapfrog':
+        elif mname == 'staggered_leapfrog':
             # Construct N * 2 dim array to hold time step
             # n-2 and n-1 needed to find time step n
             self.rho_tmp = zeros((N,2), float)
@@ -66,11 +66,11 @@ class ADVECTION:
             self.rho_tmp[:,1] = rho
             dt = scale * dz / abs(vz)
             self.delta = vz * dt / dz
-        if mname == 'upwind':
+        elif mname == 'upwind':
             dt         = scale * dz / abs(vz)
             self.delta = vz * dt / dz
 
-        if mname == 'van_leer':
+        elif mname == 'van_leer':
             dt          = 0.1 * dz
             self.delta  = vz * dt / dz
             # Construct array with twice as many points
@@ -80,44 +80,52 @@ class ADVECTION:
             self.rho[where((self.z > 0.2) & (self.z < 0.3))] = 1.0
             self.rho_next = self.rho
 
+        else:
+            raise ValueError('Unknown method: %s.'%mname)
 
 
-    def step(self):
+
+    def step(self, it):
         rho_next, rho = self.rho_next, self.rho
+        delta         = self.delta
         if self.mname == 'staggered_leapfrog':
             rho_tmp = self.rho_tmp
         
         if self.mname   == 'FTCS':
             for iz in xrange(1,self.N-1):
-                self.rho_next[iz] = rho[iz] \
-                                    - self.delta * ( rho[iz+1] - rho[iz-1] )
+                rho_next[iz] = rho[iz] \
+                                    - delta * ( rho[iz+1] - rho[iz-1] )
         elif self.mname == 'lax':
             for iz in xrange(1,self.N-1):
-                self.rho_next[iz] = 0.5 * (rho[iz+1] + rho[iz-1]) \
-                        - self.delta * ( rho[iz+1] - rho[iz-1] )
+                rho_next[iz] = 0.5 * (rho[iz+1] + rho[iz-1]) \
+                        - delta * ( rho[iz+1] - rho[iz-1] )
+            if it == 2:
+                print self.rho
+                print rho_next
+                print rho, delta,self.N
 
         elif self.mname == 'staggered_leapfrog':
             for iz in xrange(1,self.N-1):
-                self.rho_next[iz] = rho_tmp[iz,0] \
-                        - self.delta * ( rho_tmp[iz+1,1] - rho_tmp[iz-1,1])
+                rho_next[iz] = rho_tmp[iz,0] \
+                        - delta * ( rho_tmp[iz+1,1] - rho_tmp[iz-1,1])
             self.rho_tmp[:,0] = rho_tmp[:,1]
             self.rho_tmp[:,1] = rho_next
 
         elif self.mname == 'upwind':
             for iz in xrange(1,self.N-1):
                 if self.vz > 0:
-                    self.rho_next[iz] = rho[iz] \
-                            - self.delta * ( rho[iz] - rho[iz-1] )
+                    rho_next[iz] = rho[iz] \
+                            - delta * ( rho[iz] - rho[iz-1] )
                 else:
-                    self.rho_next[iz] = rho[iz] \
-                            - self.delta * ( rho[iz+1] - rho[iz] )
+                    rho_next[iz] = rho[iz] \
+                            - delta * ( rho[iz+1] - rho[iz] )
 
         elif self.mname == 'van_leer':
-            for iz in xrange(2,self.N*2-2):
-                self.rho_next[iz] = rho[iz] \
-                        - self.delta * (rho[iz+1] - rho[iz-1] \
-                           + 0.5*(1-self.delta) * (self.slope(rho,iz+1)*rho[iz] \
-                                                   -self.slope(rho,iz-1)*rho[iz]))
+            for iz in xrange(2,self.N*2-3):
+                rho_next[iz] = rho[iz] \
+                        - delta * (rho[iz+1] - rho[iz-1] \
+                        + 0.5*(1-delta) * (self.slope(rho,iz+1)*rho[iz] \
+                                          -self.slope(rho,iz-1)*rho[iz]))
                 
             
 
@@ -138,7 +146,7 @@ class ADVECTION:
 
 # initialise instances of class where mname gives the choice of model
 ftcs        = ADVECTION(mname='FTCS')
-lax         = ADVECTION(mname='lax')  
+lax         = ADVECTION(vz=1.05, mname='lax')  
 s_leap      = ADVECTION(mname='staggered_leapfrog')
 upwind      = ADVECTION(mname='upwind')
 van_leer    = ADVECTION(mname='van_leer')
@@ -148,8 +156,9 @@ van_leer    = ADVECTION(mname='van_leer')
 
 #for method in [ftcs, lax, s_leap, upwind]:
 #for method in [upwind]:
+for method in [lax]:
 #for method in [s_leap]:
-for method in [van_leer]:
+#for method in [van_leer]:
     fig = plt.figure()
     minval = min(method.get_state()[0])
     maxval = max(method.get_state()[1])
@@ -160,7 +169,7 @@ for method in [van_leer]:
 
 
     def animate(it):
-        method.step()
+        method.step(it)
         line.set_data(method.get_state())
         return line,
 
@@ -177,7 +186,9 @@ for method in [van_leer]:
 
     # To save, uncomment following line
     # Requires packages ffmpeg, mencoder and libx264 with dependencies
-    anim.save(method.mname+'.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+    #anim.save(method.mname+'.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
     # the show goes on forever:
-    #plt.show()
+    plt.show()
+
+    print method.delta
