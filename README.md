@@ -22,3 +22,8 @@ http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/index.html
 ## Exercises:
 
 - [Set 1](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric.pdf "Set 1")
+
+<video width="800" height="600">
+  <source src="https://github.com/mariusei/AST5110/blob/master/exercises1/FTCS.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
