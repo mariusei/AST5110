@@ -7,6 +7,7 @@
 import matplotlib.pylab as plt
 import matplotlib.animation as animation
 from numpy import *
+import stagger as stagger    # Stagger deriv and interp
 
 # Solve advection eqs
 
@@ -28,27 +29,28 @@ class ADVECTION:
         self.vz = vz 
         self.mname = mname 
 
-        z = linspace(0,1,N, endpoint=False)   # not inclusive endpoint
+        if ((mname != 'van_leer') or (mname != 'stagger')):
+            z = linspace(0,1,N, endpoint=False)   # not inclusive endpoint
 
-        rho     = zeros(N)
-        rho_next= zeros(N)
+            rho     = zeros(N)
+            rho_next= zeros(N)
 
-        condition = where((z > 0.2) & (z < 0.3))
+            condition = where((z > 0.2) & (z < 0.3))
 
-        rho[:]  = 0.1
-        rho[condition] = 1.0
+            rho[:]  = 0.1
+            rho[condition] = 1.0
 
-        dz = z[1]-z[0]  # assuming constant z step length
+            dz = z[1]-z[0]  # assuming constant z step length
 
-        # boundary conditions
-        # Assume locked boundaries
-        rho_next[0]     = rho[0]
-        rho_next[N-1]   = rho[N-1]
+            # boundary conditions
+            # Assume locked boundaries
+            rho_next[0]     = rho[0]
+            rho_next[N-1]   = rho[N-1]
 
-        # make these available to entire class
-        self.z          = z
-        self.rho        = rho
-        self.rho_next   = rho_next
+            # make these available to entire class
+            self.z          = z
+            self.rho        = rho
+            self.rho_next   = rho_next
 
         if mname == 'FTCS':
             self.delta = dz
@@ -85,6 +87,9 @@ class ADVECTION:
         elif mname == 'van_leer':
             dt          = 0.1 * dz
             self.delta  = vz * dt / dz
+            self.dt     = dt
+            self.dz     = dz 
+            self.vz     = vz
 
             # Construct array with twice as many points
             self.z   = linspace(0,1,2*N, endpoint=False)
@@ -93,6 +98,18 @@ class ADVECTION:
             self.rho[:] = 0.1
             self.rho[where((self.z > 0.2) & (self.z < 0.3))] = 1.0
             self.rho_next[:] = self.rho[:]
+
+        elif mname == 'stagger':
+            self.dt     = dz
+            self.delta  = self.dt * vz
+            self.dz     = dz
+
+            # Array must hold twice as many points: staggered grid
+            self.z      = linspace(0,1,2*N, endpoint=False)
+            self.rho    = zeros((2*N), float)
+            self.rho_next=zeros((2*N), float)
+            self.rho[:] = 0.1
+            self.rho[where((self.z > 0.2) & (self.z < 0.3))] = 1.0
 
         else:
             # If no valid method name mname was give
@@ -138,6 +155,13 @@ class ADVECTION:
                         + 0.5*(1-delta) * (self.slope(rho,iz+1)*rho[iz] \
                                           -self.slope(rho,iz-1)*rho[iz]))
 
+        elif self.mname == 'stagger':
+            dt, dz, vz  = self.dt, self.dz, self.vz
+            rho_next[:] = rho[:] - dt \
+                    * stagger.deriv( vz \
+                    * stagger.interp(rho, direction=-1), dz)
+            
+
         else:
             raise NameError('Wrong method specified: '+str(self.mname))
 
@@ -159,7 +183,8 @@ lax         = ADVECTION(mname='lax')
 s_leap      = ADVECTION(mname='staggered_leapfrog')
 upwind      = ADVECTION(mname='upwind')
 van_leer    = ADVECTION(mname='van_leer')
-methods = array([ftcs, lax, s_leap, van_leer])
+stagger_nord= ADVECTION(mname='stagger')
+methods = array([ftcs, lax, s_leap, van_leer, stagger_nord])
 
 # Animation
 # iterate through methods and produce animations
