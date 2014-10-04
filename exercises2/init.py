@@ -33,3 +33,7 @@ for i in xrange(T-1):
 
 plt.plot(z,rho[:,2])
 plt.show()
+
+
+plt.plot(z,rho[:,5])
+plt.show()
