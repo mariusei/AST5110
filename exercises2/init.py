@@ -113,3 +113,7 @@ print 'Done'
 
 # the show goes on forever:
 plt.show()
+
+
+plt.plot(z,rho[:,5])
+plt.show()
