@@ -16,7 +16,6 @@ class MomEq:
         self.mname = 'Momentum Eq. Stagger solved'
 
         N = 1024
-        T = 10
         dt = 0.00001
 
         z   = linspace(0,1,N)
@@ -26,6 +25,7 @@ class MomEq:
         Q   = zeros(N)
 
         rho[:,0] = 1.0 + self.peak(z, N)
+        rhov[:,0] = 1.0 + self.peak(z, N)
 
         dz  = z[0] - z[1]
         g_z = 0.0
@@ -50,7 +50,7 @@ class MomEq:
         rhov, rho, Q    = self.rhov, self.rho, self.Q
         dt, dz, g_z     = self.dt, self.dz, self.g_z
 
-        self.eos(5./3)
+        self.eos(19./3)
         p_g = self.p_g
         
         rhov[:,1] = rhov[:,0] + dt \
@@ -64,19 +64,21 @@ class MomEq:
 
 
         rho[:,1] = rho[:,0] -  dt * stagger.deriv( rhov[:,1], dz)
+
+        self.rhov[:,0] = rhov[:,1]
+        self.rho[:,0] = rho[:,1]
         
 
-
-        self.rhov[:,0] = rho[:,1]
-        self.rho[:,0] = rho[:,1]
-
     def get_state(self):
-        return (self.z, self.rho[:,0])
+        return (self.z, self.rhov[:,0])
         
         
 
 
 method = MomEq()
+
+method
+
 
 fig = plt.figure()
 minval = min(method.get_state()[0])
