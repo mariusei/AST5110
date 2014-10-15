@@ -37,11 +37,13 @@ def step_rhov_rho(dx, y):
 
     p_g[:] =  0 #0.01* power(rho, 5./3)
 
-    return array([-    rhov[:] / interp(rho[:], direction=1) \
-                    *deriv( interp(rhov[:]), dx) \
+    new_rhov = -    rhov / interp(rho, direction=1) \
+                    *deriv( interp(rhov), dx) \
                 -    deriv( p_g + Q, dx) \
-                +    interp(rho[:], direction=1) * g_z \
-            ,    - deriv(rhov[:], dx) ])
+                +    interp(rho, direction=1) * g_z
+    new_rho  =    - deriv(rhov, dx)
+
+    return new_rhov, new_rho
 
 def step(t):
 
@@ -55,15 +57,15 @@ def step(t):
 #    
 #    rr[:] = rho[:] + dt * ( - deriv(rhov[:], dx) )
 
-#    rv1, rr1   = step_rhov_rho(dx,     [rhov, rho])
-#    rv2, rr2   = step_rhov_rho(0.5*dx, [rhov +0.5*rv1, rho+0.5*rr1])
-#    rv3, rr3   = step_rhov_rho(0.5*dx, [rhov +0.5*rv2, rho+0.5*rr2])
-#    rv4, rr4   = step_rhov_rho(dx,     [rhov +    rv3, rho+    rr3])
+    rv1, rr1   = step_rhov_rho(dx,     [rhov, rho])
+    rv2, rr2   = step_rhov_rho(0.5*dx, [rhov +0.5*rv1, rho+0.5*rr1])
+    rv3, rr3   = step_rhov_rho(0.5*dx, [rhov +0.5*rv2, rho+0.5*rr2])
+    rv4, rr4   = step_rhov_rho(dx,     [rhov +    rv3, rho+    rr3])
 
     rv, rr = step_rhov_rho(dx, [rhov, rho])
 
-    rhov[:] = rhov[:] + dt * rv # + dt/6 * (rv1 + 2.*rv2 + 2.*rv3 + rv4)
-    rho[:]  = rho[:]  + dt * rr # + dt/6 * (rr1 + 2.*rr2 + 2.*rr3 + rr4) 
+    rhov[:] = rv2 #rhov[:] + dt * rv2 # + dt/6 * (rv1 + 2.*rv2 + 2.*rv3 + rv4)
+    rho[:]  = rr2 #rho[:]  + dt * rr2 # + dt/6 * (rr1 + 2.*rr2 + 2.*rr3 + rr4) 
 
 #    rhov[:] = rv[:]
 #    rho[:]  = rr[:]
@@ -101,8 +103,8 @@ line_rv,    = ax.plot([], [], lw=2)
 line_p_g,   = ax.plot([], [], lw=2)
 
 
-anim = animation.FuncAnimation(fig, animate, init_func=init, \
-        frames=10240, interval=15, blit=True)
+#anim = animation.FuncAnimation(fig, animate, init_func=init, \
+#        frames=10240, interval=15, blit=True)
 
 # To save, uncomment following line
 # Requires packages ffmpeg, mencoder and libx264 with dependencies

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 # Exercise 2
 
@@ -16,7 +17,7 @@ class MomEq:
         self.mname = 'Momentum Eq. Stagger solved'
 
         N = 1024
-        dt = 0.00001
+        dt = 0.0001
 
         z   = linspace(0,1,N)
         rho = ones((N,2))
@@ -24,8 +25,9 @@ class MomEq:
         p_g = zeros(N)
         Q   = zeros(N)
 
-        rho[:,0] = 1.0 + self.peak(z, N)
-        rhov[:,0] = 1.0 + self.peak(z, N)
+        rho[:,0] = 1.0 #1.0 + self.peak(z, N)
+        rhov[:,0] = 0  + self.peak(z,N) # * stagger.interp(rho[:,0], direction=-1)
+ #       rhov[where((z>0.3) & (z< 0.5)),0] = 1.0
 
         dz  = z[0] - z[1]
         g_z = 0.0
@@ -34,6 +36,9 @@ class MomEq:
         self.Q, self.p_g    = Q, p_g
         self.dt, self.dz    = dt, dz
         self.g_z            = g_z
+
+        self.a  = zeros(N)
+        self.b  = zeros(N)
 
     def peak(self, x, N):
 
@@ -50,27 +55,37 @@ class MomEq:
         rhov, rho, Q    = self.rhov, self.rho, self.Q
         dt, dz, g_z     = self.dt, self.dz, self.g_z
 
-        self.eos(19./3)
+        self.eos(5./3)
         p_g = self.p_g
+
+        a   =   - stagger.deriv(stagger.interp(rhov[:,0]**2, direction=-1)\
+                /rho[:,0], dz) + roll(rhov[:,0],+300)
+        b   =   0 #- stagger.deriv(( \
+                #        p_g + Q \
+                #        ), dz)
+
+        c   =   stagger.interp(rho[:,0], direction=1) * g_z 
         
         rhov[:,1] = rhov[:,0] + dt \
-                * (- 1./rho[:,0] \
-                    * stagger.interp(rhov[:,0]) \
-                    * stagger.deriv(rhov[:,0], dz) \
-                 - stagger.deriv(stagger.interp(( \
-                        p_g + Q \
-                        ), direction=-1), dz) \
-                 + rho[:,0] * g_z )
+                 * (a + b + c)
+#                * (- 1./(stagger.interp(rho[:,0], direction=1)) \
+#                    * rhov[:,0] \
+#                    * stagger.deriv(stagger.interp(rhov[:,0], direction=-1), dz) \
+#                 - stagger.deriv(( \
+#                        p_g + Q \
+#                        ), dz) \
+#                 + stagger.interp(rho[:,0], direction=1) * g_z )
 
+        self.a, self.b, self.c = a,b,c
 
-        rho[:,1] = rho[:,0] -  dt * stagger.deriv( rhov[:,1], dz)
+        rho[:,1] = rho[:,0] -  dt * stagger.deriv( rhov[:,1], dz, direction=-1)
 
         self.rhov[:,0] = rhov[:,1]
         self.rho[:,0] = rho[:,1]
         
 
     def get_state(self):
-        return (self.z, self.rhov[:,0])
+        return (self.z, self.a) # self.rhov[:,0])
         
         
 
