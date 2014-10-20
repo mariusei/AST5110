@@ -45,36 +45,64 @@ def step_rhov_rho(dx, y):
 
     return new_rhov, new_rho
 
-def step(t):
+def ecsolver(f, dx, dt, xi, yi):
+    y1 = yi + dx * f(xi, yi, dx, dt)
 
-#    p_g[:] = zeros(N) #power(rho, 5./3)
+    return y1
+
+def cont_eqs(xi, yi, dx, dt):
+
+    p    = yi[0]
+    rho  = yi[1]
+    p_g  = yi[2]
+    Q    = yi[3]
+    
+    p_g  = eos(p_g, 5./3)
+
+    dpdt =              p / interp(p, direction=1) \
+                       *deriv( interp(p), dx) \
+                -       deriv((p_g + Q), dx) \
+                +       interp(rho, direction=1) * g_z
+    drhodt =    -       deriv( p, dx)
+
+    return array([dpdt, drhodt, p_g, Q])
+
+#def step(t):
+
+##    p_g[:] = zeros(N) #power(rho, 5./3)
+##
+##    rv[:] = rhov[:] + dt * ( \
+##                -    rhov[:] / interp(rho[:], direction=1) \
+##                    *deriv( interp(rhov[:]), dx) \
+##                -    deriv( p_g + Q, dx) \
+##                +    interp(rho[:], direction=1) * g_z )
+##    
+##    rr[:] = rho[:] + dt * ( - deriv(rhov[:], dx) )
 #
-#    rv[:] = rhov[:] + dt * ( \
-#                -    rhov[:] / interp(rho[:], direction=1) \
-#                    *deriv( interp(rhov[:]), dx) \
-#                -    deriv( p_g + Q, dx) \
-#                +    interp(rho[:], direction=1) * g_z )
-#    
-#    rr[:] = rho[:] + dt * ( - deriv(rhov[:], dx) )
+#    rv1, rr1   = step_rhov_rho(dx,     [rhov, rho])
+#    rv2, rr2   = step_rhov_rho(0.5*dx, [rhov +0.5*rv1, rho+0.5*rr1])
+#    rv3, rr3   = step_rhov_rho(0.5*dx, [rhov +0.5*rv2, rho+0.5*rr2])
+#    rv4, rr4   = step_rhov_rho(dx,     [rhov +    rv3, rho+    rr3])
+#
+#    rv, rr = step_rhov_rho(dx, [rhov, rho])
+#
+#    rhov[:] = rv2 #rhov[:] + dt * rv2 # + dt/6 * (rv1 + 2.*rv2 + 2.*rv3 + rv4)
+#    rho[:]  = rr2 #rho[:]  + dt * rr2 # + dt/6 * (rr1 + 2.*rr2 + 2.*rr3 + rr4) 
+#
+##    rhov[:] = rv[:]
+##    rho[:]  = rr[:]
 
-    rv1, rr1   = step_rhov_rho(dx,     [rhov, rho])
-    rv2, rr2   = step_rhov_rho(0.5*dx, [rhov +0.5*rv1, rho+0.5*rr1])
-    rv3, rr3   = step_rhov_rho(0.5*dx, [rhov +0.5*rv2, rho+0.5*rr2])
-    rv4, rr4   = step_rhov_rho(dx,     [rhov +    rv3, rho+    rr3])
-
-    rv, rr = step_rhov_rho(dx, [rhov, rho])
-
-    rhov[:] = rv2 #rhov[:] + dt * rv2 # + dt/6 * (rv1 + 2.*rv2 + 2.*rv3 + rv4)
-    rho[:]  = rr2 #rho[:]  + dt * rr2 # + dt/6 * (rr1 + 2.*rr2 + 2.*rr3 + rr4) 
-
-#    rhov[:] = rv[:]
-#    rho[:]  = rr[:]
 
 
 
 ### ANIMATION ###
 
 def get_state():
+
+    y = zeros(
+
+    array([rhov[:], rho[:], p_g[:], Q[:]]) = ecsolver(cont_eqs, dx, dt, 0, array([rhov[:], rho[:], p_g[:], Q[:]]))
+
     return (x, rhov, x, rho, p_g)
 
 def animate(it):
