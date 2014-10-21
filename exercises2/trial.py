@@ -15,129 +15,103 @@ def peak(pos, width, N, amplitude):
     return amplitude * y / max(y)
 
 
-N = 1024
-dt= 0.0001
-
-x = linspace(0,1,N)
-dx= x[1] - x[0]
-
-rho  = ones(N)
-rhov = ones(N) + peak(N/2, N/6, N, 3)
-p_g  = zeros(N)
-Q    = zeros(N)
-g_z  = 0.0
-
-
-rr = zeros(N)
-rv = zeros(N)
-
-def step_rhov_rho(dx, y):
-
-    rhov, rho = y[0], y[1]
-
-    p_g[:] =  0 #0.01* power(rho, 5./3)
-
-    new_rhov = -    rhov / interp(rho, direction=1) \
-                    *deriv( interp(rhov), dx) \
-                -    deriv( p_g + Q, dx) \
-                +    interp(rho, direction=1) * g_z
-    new_rho  =    - deriv(rhov, dx)
-
-    return new_rhov, new_rho
+def eos(rho, gamma):
+    return power(rho, gamma)
 
 def ecsolver(f, dx, dt, xi, yi):
-    y1 = yi + dx * f(xi, yi, dx, dt)
+    """ Advances one step in time """
+    y1 = yi + dt * f(xi, yi, dx, dt)
 
     return y1
 
 def cont_eqs(xi, yi, dx, dt):
 
-    p    = yi[0]
-    rho  = yi[1]
+    rho  = yi[0]
+    p    = yi[1]
     p_g  = yi[2]
     Q    = yi[3]
-    
-    p_g  = eos(p_g, 5./3)
 
-    dpdt =              p / interp(p, direction=1) \
-                       *deriv( interp(p), dx) \
+    gamma = 5./3
+    
+    p_g  = zeros(N) # eos(rho, gamma)
+
+    dpdt =      -       p / interp(p, direction=1) \
+                       *deriv( interp(p, direction=-1), dx) \
                 -       deriv((p_g + Q), dx) \
                 +       interp(rho, direction=1) * g_z
+
     drhodt =    -       deriv( p, dx)
 
-    return array([dpdt, drhodt, p_g, Q])
+    dp_gdt =            zeros(N) # gamma * power(rho, gamma-1) * drhodt
 
-#def step(t):
-
-##    p_g[:] = zeros(N) #power(rho, 5./3)
-##
-##    rv[:] = rhov[:] + dt * ( \
-##                -    rhov[:] / interp(rho[:], direction=1) \
-##                    *deriv( interp(rhov[:]), dx) \
-##                -    deriv( p_g + Q, dx) \
-##                +    interp(rho[:], direction=1) * g_z )
-##    
-##    rr[:] = rho[:] + dt * ( - deriv(rhov[:], dx) )
-#
-#    rv1, rr1   = step_rhov_rho(dx,     [rhov, rho])
-#    rv2, rr2   = step_rhov_rho(0.5*dx, [rhov +0.5*rv1, rho+0.5*rr1])
-#    rv3, rr3   = step_rhov_rho(0.5*dx, [rhov +0.5*rv2, rho+0.5*rr2])
-#    rv4, rr4   = step_rhov_rho(dx,     [rhov +    rv3, rho+    rr3])
-#
-#    rv, rr = step_rhov_rho(dx, [rhov, rho])
-#
-#    rhov[:] = rv2 #rhov[:] + dt * rv2 # + dt/6 * (rv1 + 2.*rv2 + 2.*rv3 + rv4)
-#    rho[:]  = rr2 #rho[:]  + dt * rr2 # + dt/6 * (rr1 + 2.*rr2 + 2.*rr3 + rr4) 
-#
-##    rhov[:] = rv[:]
-##    rho[:]  = rr[:]
-
-
-
+    return array([drhodt, dpdt, dp_gdt, zeros(N)])
 
 ### ANIMATION ###
 
-def get_state():
 
-    y = zeros(
+def get_state(yinout):
 
-    array([rhov[:], rho[:], p_g[:], Q[:]]) = ecsolver(cont_eqs, dx, dt, 0, array([rhov[:], rho[:], p_g[:], Q[:]]))
+    yinout[:] = ecsolver(f=cont_eqs, dx=dx, dt=dt, xi=0, \
+            yi=yinout)
 
-    return (x, rhov, x, rho, p_g)
+    return (x, yinout)
 
-def animate(it):
-    step(it)
-    line_rv.set_data(get_state()[0], get_state()[1])
-    line_rho.set_data(get_state()[2], get_state()[3])
-    line_p_g.set_data(get_state()[0], get_state()[4])
-    ax.set_title('it=%g'%it)
-    return line_rv, line_rho, line_p_g
+# y is THE array, holding values that will be integrated in time
 
-def init():
-    line_rho.set_data([], [])
-    line_rv.set_data([], [])
-    line_p_g.set_data([], [])
-    ax.legend([line_rho, line_rv, line_p_g], [r'$\rho$', r'$\rho v$', r'$p_{\rm gas}$'])
-    return line_rho, line_rv, line_p_g
+N = 1024
+dt= 0.00001
+
+x = linspace(0,1,N)
+dx= x[1] - x[0]
+
+rhov  = ones(N)
+rhov[where((x < 0.7) & (x > 0.4))] = 2.0
+rho = ones(N) #ones(N) + peak(N/2, N/6, N, 3)
+p_g  = zeros(N) #eos(rho, 5./3)
+Q    = zeros(N)
+g_z  = 0.0
+
+y    = zeros((4,N))
+y[0] = rho
+y[1] = rhov
+y[2] = p_g
+y[3] = Q
+
 
 fig = plt.figure()
-minval = min(get_state()[0])
-maxval = max(get_state()[0])
+minval = min(x)
+maxval = max(x)
 
 # set up axes and plot empty data set
-ax  = plt.axes(xlim=(minval, maxval), ylim=(-0.5,5))
+ax  = plt.axes(xlim=(minval, maxval), ylim=(-0.5,3))
 line_rho,   = ax.plot([], [], lw=2)
 line_rv,    = ax.plot([], [], lw=2)
 line_p_g,   = ax.plot([], [], lw=2)
+lines = [line_rho, line_rv, line_p_g]
+
+def init():
+    for line in lines:
+        line.set_data([], [])
+    ax.legend([line_rho, line_rv, line_p_g], \
+            [r'$\rho$', r'$\rho v$', r'$p_{\rm gas}$'])
+    return lines
+
+def animate(it, y, lines):
+    x, y = get_state(y)
+    rho, rhov, p_g, Q   = y[0], y[1], y[2], y[3]
+    lines[0].set_data(x, rho)
+    lines[1].set_data(x, rhov)
+    lines[2].set_data(x, p_g)
+    return lines
 
 
-#anim = animation.FuncAnimation(fig, animate, init_func=init, \
-#        frames=10240, interval=15, blit=True)
+anim = animation.FuncAnimation(fig, animate, init_func=init, \
+        fargs=(y, lines), frames=64, interval=25, blit=True)
 
 # To save, uncomment following line
 # Requires packages ffmpeg, mencoder and libx264 with dependencies
 print 'Writing animation to file...'
-#anim.save('alive.mp4', fps=480, extra_args=['-vcodec', 'libx264'])
+#anim.save('ec_test.mp4', fps=25, extra_args=['-vcodec', 'libx264', '-profile:v', 'baseline'])
 print 'Done'
 
 # the show goes on forever:
