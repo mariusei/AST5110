@@ -67,7 +67,9 @@ def cont_eqs(xi, yi, dx, dt):
 
     gamma = 5./3
     
-    p_g  = 0 #eos(rho, gamma)
+    p_g  = eos(rho, gamma)
+
+    Q    =     0.0001 * deriv(p, dx, direction=-1)
 
     dpdt =      -       p / interp(p, direction=1) \
                     *deriv( interp(p, direction=-1), dx) \
@@ -76,7 +78,7 @@ def cont_eqs(xi, yi, dx, dt):
 
     drhodt =    -       deriv( p, dx)
 
-    dp_gdt =    zeros(N) #          gamma * power(rho, gamma-1) * drhodt
+    dp_gdt =            gamma * power(rho, gamma-1) * drhodt
 
     return array([drhodt, dpdt, dp_gdt, zeros(N),    zeros(N)])
 
@@ -93,15 +95,15 @@ def get_state(yinout):
 # y is THE array, holding values that will be integrated in time
 
 N = 1024
-dt= 0.001
+dt= 0.0001
 
 x = linspace(0,1,N)
 dx= x[1] - x[0]
 
-rho  = ones(N)
+rhov  = ones(N)
 #rhov[where((x < 0.7) & (x > 0.4))] = 2.0
-rhov = ones(N) + peak(N/2, N/6, N, 3)
-p_g  = zeros(N) #eos(rho, 5./3)
+rho = ones(N) + peak(N/2, N/6, N, 3)
+p_g  = eos(rho, 5./3)
 Q    = zeros(N)
 g_z  = 0.0
 
