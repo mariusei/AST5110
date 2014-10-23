@@ -51,9 +51,11 @@ def rk4solver(f, dx, dt, xi, yi):
     Q    = yi[3]
     #Q    = deriv( deriv( deriv( deriv(p, dx, direction=-1), dx), dx, direction=-1), dx)
 
+    # DEBUG: 5th element: differentiation operation
+
     y1[4] =     -       p / interp(p, direction=1) \
                        *deriv( interp(p, direction=-1), dx)  \
-           -       deriv((p_g + Q), dx) \
+                -       0.01 * deriv((p_g + Q), dx) \
                 +       interp(rho, direction=1) * g_z
 
     return y1
@@ -73,7 +75,7 @@ def cont_eqs(xi, yi, dx, dt):
 
     dpdt =      -       p / interp(p, direction=1) \
                     *deriv( interp(p, direction=-1), dx) \
-        -       deriv((p_g + Q), dx) \
+        -       0.01 *deriv((p_g + Q), dx) \
                 +       interp(rho, direction=1) * g_z
 
     drhodt =    -       deriv( p, dx)
@@ -130,7 +132,7 @@ def init():
     for line in lines:
         line.set_data([], [])
     ax.legend(lines, \
-            [r'$\rho$', r'$\rho v$', r'$p_{\rm gas}$', 'diffoperator'])
+            [r'$\rho$', r'$\rho v$', r'$p_{\rm gas}$', r'$d\rho v/dt$'])
     return lines
 
 def animate(it, y, lines):
@@ -145,12 +147,12 @@ def animate(it, y, lines):
 
 
 anim = animation.FuncAnimation(fig, animate, init_func=init, \
-        fargs=(y, lines), frames=1024, interval=05, blit=True)
+        fargs=(y, lines), frames=512, interval=05, blit=True)
 
 # To save, uncomment following line
 # Requires packages ffmpeg, mencoder and libx264 with dependencies
 print 'Writing animation to file...'
-#anim.save('no_press_rhov.mp4', fps=125, extra_args=['-vcodec', 'libx264'])
+anim.save('damped.mp4', fps=50, extra_args=['-vcodec', 'libx264'])
 print 'Done'
 
 # the show goes on forever:
