@@ -52,10 +52,24 @@ def rk4solver(f, dx, dt, xi, yi):
     #Q    = deriv( deriv( deriv( deriv(p, dx, direction=-1), dx), dx, direction=-1), dx)
 
     # DEBUG: 5th element: differentiation operation
+    gamma = 5./3
+    K     = 1.0
+    
+    p_g  = K * eos(rho, gamma)
 
-    y1[4] =     -       p / interp(p, direction=1) \
-                       *deriv( interp(p, direction=-1), dx)  \
-                -       0.01 * deriv((p_g + Q), dx) \
+    vel  = interp(p, direction=-1) / rho
+    nu   = 1.0  # of order unity
+    c_s  = K * gamma * power( rho, gamma - 1)
+    mu   = rho * c_s * nu * dx
+
+    Q    =      mu * deriv(vel, dx)
+    #Q = zeros(N)
+    print max((rho - roll(rho, -1))/dx) 
+
+    y1[4] =     -    deriv( interp(p*p, direction=-1)/rho, dx) \
+                -    K*gamma*power(rho, gamma-1)\
+                    *deriv(power(rho,gamma), dx)\
+                -    deriv(Q, dx) \
                 +       interp(rho, direction=1) * g_z
 
     return y1
@@ -64,23 +78,31 @@ def cont_eqs(xi, yi, dx, dt):
 
     rho  = yi[0]
     p    = yi[1]
-    p_g  = yi[2]
+    #p_g  = yi[2]
     Q    = yi[3]
 
     gamma = 5./3
+    K     = 1.0
     
-    p_g  = eos(rho, gamma)
+    p_g  = K * eos(rho, gamma)
 
-    Q    =     0.0001 * deriv(p, dx, direction=-1)
+    vel  = p / interp( rho, direction=+1)
+    nu   = 0.01  # of order unity
+    c_s  = K * gamma * power( rho, gamma - 1)
+    mu   = rho * c_s * nu * dx
 
-    dpdt =      -       p / interp(p, direction=1) \
-                    *deriv( interp(p, direction=-1), dx) \
-        -       0.01 *deriv((p_g + Q), dx) \
+    Q    =      mu * deriv(vel, dx, direction=-1)
+    #Q    = zeros(N)
+
+    dpdt =      -    deriv( interp(p*p, direction=-1)/rho, dx) \
+                -    K*gamma*power(rho, gamma-1)\
+                    *deriv(power(rho,gamma), dx)\
+                -    deriv(Q, dx) \
                 +       interp(rho, direction=1) * g_z
 
     drhodt =    -       deriv( p, dx)
 
-    dp_gdt =            gamma * power(rho, gamma-1) * drhodt
+    dp_gdt =            K * gamma * power(rho, gamma-1) * drhodt
 
     return array([drhodt, dpdt, dp_gdt, zeros(N),    zeros(N)])
 
@@ -99,12 +121,14 @@ def get_state(yinout):
 N = 1024
 dt= 0.0001
 
-x = linspace(0,1,N)
+x = linspace(0,10,N)
 dx= x[1] - x[0]
 
-rhov  = ones(N)
-#rhov[where((x < 0.7) & (x > 0.4))] = 2.0
-rho = ones(N) + peak(N/2, N/6, N, 3)
+rhov  = zeros(N)
+rho   = zeros(N)
+rho[:]= 0.8
+rho[where((x < 7) & (x > 4))] = 1.0
+#rho = ones(N) + peak(N/2, N/6, N, 3)
 p_g  = eos(rho, 5./3)
 Q    = zeros(N)
 g_z  = 0.0
@@ -121,7 +145,7 @@ minval = min(x)
 maxval = max(x)
 
 # set up axes and plot empty data set
-ax  = plt.axes(xlim=(minval, maxval), ylim=(-2.5,13))
+ax  = plt.axes(xlim=(minval, maxval), ylim=(-2.5,03))
 line_rho,   = ax.plot([], [], lw=2)
 line_rv,    = ax.plot([], [], lw=2)
 line_p_g,   = ax.plot([], [], lw=2)
@@ -147,12 +171,12 @@ def animate(it, y, lines):
 
 
 anim = animation.FuncAnimation(fig, animate, init_func=init, \
-        fargs=(y, lines), frames=512, interval=05, blit=True)
+        fargs=(y, lines), frames=512, interval=905, blit=True)
 
 # To save, uncomment following line
 # Requires packages ffmpeg, mencoder and libx264 with dependencies
 print 'Writing animation to file...'
-anim.save('damped.mp4', fps=50, extra_args=['-vcodec', 'libx264'])
+#anim.save('damped.mp4', fps=50, extra_args=['-vcodec', 'libx264'])
 print 'Done'
 
 # the show goes on forever:
