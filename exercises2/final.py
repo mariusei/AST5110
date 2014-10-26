@@ -61,7 +61,7 @@ minval = min(x)
 maxval = max(x)
 
 # set up axes and plot empty data set
-ax  = plt.axes(xlim=(minval, maxval), ylim=(-2.5,03))
+ax  = plt.axes(xlim=(minval, maxval), ylim=(-0.8,01.5))
 line_rhov,  = ax.plot([], [], lw=2)
 line_rho,   = ax.plot([], [], lw=2)
 lines = [line_rhov, line_rho]
@@ -83,12 +83,12 @@ def animate(it, y, lines):
 
 
 anim = animation.FuncAnimation(fig, animate, init_func=init, \
-        fargs=(y, lines), frames=10240, interval=005, blit=True)
+        fargs=(y, lines), frames=512, interval=205, blit=True)
 
 # To save, uncomment following line
 # Requires packages ffmpeg, mencoder and libx264 with dependencies
 print 'Writing animation to file...'
-anim.save('working.mp4', fps=240, extra_args=['-vcodec', 'libx264'])
+#anim.save('working.mp4', fps=240, extra_args=['-vcodec', 'libx264'])
 print 'Done'
 
 # the show goes on forever:
