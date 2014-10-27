@@ -1,6 +1,7 @@
 
 \documentclass{beamer}
 \usepackage{media9}
+\usepackage{listings}
 
 \mode<presentation> {
 
@@ -242,143 +243,139 @@ Interpolate forward half a step ($\Delta x/2$):
 
 \end{frame}
 
+\subsection{Equations restated}
+\begin{frame}
+    \frametitle{Equations restated}
+
+    Solve only for momentum $\rho v$ and density $\rho$, meaning the velocity can be found (at $\rho v$'s location):
+    \begin{equation}
+        v = \frac{\rho v}{T^+_z \left[ \rho \right]}
+        \label{eq:vel}
+    \end{equation}
+
+    Momentum equation
+    \begin{equation}
+        \frac{\partial \rho v}{\partial t} = -\partial_{,z}^+ \left[ \frac{1}{\rho} \left( T^{-}_z \left( \left( \rho v \right)^2 \right) \right) \right] + \partial^+_{,z} \left[ p_{\rm gas} + Q \right] + T^+_z \left[ \rho \right] g_z
+        \label{eq:staggered_momentum}
+    \end{equation}
+
+    Mass continuity equation
+    \begin{equation}
+        \frac{\partial \rho}{\partial t} = - \partial^-_{,z} \left[ \rho v \right]
+        \label{eq:staggered_density}
+    \end{equation}
+
+\end{frame}
+
 \section{Results}
 \subsection{Stability check}
 \begin{frame}
     \frametitle{Stability check}
     \href{http://77.237.250.152/wordpress/studier/stability_web.mp4}[\beamergotobutton{http://77.237.250.152/wordpress/studier/stability\_web.mp4}]
 
+    \begin{center}
 \includemedia[
-  width=\linewidth,
-  height=0.6\linewidth,
-  activate=pageopen,
-  addresource=stability_web.mp4,
-%  flashvars={source=stability_web.mp4}
-  flashvars={flv=stability_web&autoplay=1}
-]{}{player_flv_maxi.swf}
-
-\end{frame}<++>
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Bullet Points}
-\begin{itemize}
-\item Lorem ipsum dolor sit amet, consectetur adipiscing elit
-\item Aliquam blandit faucibus nisi, sit amet dapibus enim tempus eu
-\item Nulla commodo, erat quis gravida posuere, elit lacus lobortis est, quis porttitor odio mauris at libero
-\item Nam cursus est eget velit posuere pellentesque
-\item Vestibulum faucibus velit a augue condimentum quis convallis nulla gravida
-\end{itemize}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Blocks of Highlighted Text}
-\begin{block}{Block 1}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
-\end{block}
-
-\begin{block}{Block 2}
-Pellentesque sed tellus purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum quis magna at risus dictum tempor eu vitae velit.
-\end{block}
-
-\begin{block}{Block 3}
-Suspendisse tincidunt sagittis gravida. Curabitur condimentum, enim sed venenatis rutrum, ipsum neque consectetur orci, sed blandit justo nisi ac lacus.
-\end{block}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Multiple Columns}
-\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
-
-\column{.45\textwidth} % Left column and width
-\textbf{Heading}
-\begin{enumerate}
-\item Statement
-\item Explanation
-\item Example
-\end{enumerate}
-
-\column{.5\textwidth} % Right column and width
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
-
-\end{columns}
-\end{frame}
-
-%------------------------------------------------
-\section{Second Section}
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Table}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Theorem}
-\begin{theorem}[Mass--energy equivalence]
-$E = mc^2$
-\end{theorem}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-\frametitle{Verbatim}
-\begin{example}[Theorem Slide Code]
-\begin{verbatim}
-\begin{frame}
-\frametitle{Theorem}
-\begin{theorem}[Mass--energy equivalence]
-$E = mc^2$
-\end{theorem}
-\end{frame}\end{verbatim}
-\end{example}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{Figure}
-Uncomment the code on this slide to include your own image from the same directory as the template .TeX file.
-%\begin{figure}
-%\includegraphics[width=0.8\linewidth]{test}
-%\end{figure}
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
-\frametitle{Citation}
-An example of the \verb|\cite| command to cite within the presentation:\\~
-
-This statement requires citation \cite{p1}.
-\end{frame}
-
-%------------------------------------------------
-
-\begin{frame}
-\frametitle{References}
-\footnotesize{
-\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Smith, 2012]{p1} John Smith (2012)
-\newblock Title of the publication
-\newblock \emph{Journal Name} 12(3), 45 -- 678.
-\end{thebibliography}
+width=0.8\linewidth,height=0.6\linewidth, % 16:9
+activate=pageopen,
+flashvars={
+modestbranding=1 % no YT logo in control bar
+&autohide=1 % controlbar autohide
+&showinfo=0 % no title and other info before start
+&rel=0          % no related videos after end
 }
+]{}{http://www.youtube.com/v/pQj6pArdMPc?rel=0}
+    \end{center}
+
+
+\end{frame}
+
+\subsection{Stable without pressure}
+\begin{frame}
+    \frametitle{Stable without pressure}
+    \href{http://77.237.250.152/wordpress/studier/alive.mp4}[\beamergotobutton{http://77.237.250.152/wordpress/studier/alive.mp4}]
+
+    \begin{center}
+\includemedia[
+width=0.8\linewidth,height=0.6\linewidth, % 16:9
+activate=pageopen,
+flashvars={
+modestbranding=1 % no YT logo in control bar
+&autohide=1 % controlbar autohide
+&showinfo=0 % no title and other info before start
+&rel=0          % no related videos after end
+}
+]{}{http://www.youtube.com/v/z0xPSETtJpA?rel=0}
+    \end{center}
+
+\end{frame}
+
+\subsection{Stable for small amplitudes}
+\begin{frame}
+    \frametitle{Stable for small amplitudes}
+    \href{http://77.237.250.152/wordpress/studier/working.mp4}[\beamergotobutton{http://77.237.250.152/wordpress/studier/working.mp4}]
+
+    \begin{center}
+\includemedia[
+width=0.8\linewidth,height=0.6\linewidth, % 16:9
+activate=pageopen,
+flashvars={
+modestbranding=1 % no YT logo in control bar
+&autohide=1 % controlbar autohide
+&showinfo=0 % no title and other info before start
+&rel=0          % no related videos after end
+}
+]{}{http://www.youtube.com/v/f6XDzfA12eE?rel=0}
+    \end{center}
+
+
+\end{frame}
+
+\section{To do}
+\subsection{To do}
+\begin{frame}
+    \frametitle{To do:}
+
+    \begin{enumerate}
+        \item Remember. There is no such thing as negative density
+        \item Try with sine peak as initial condition for $\rho$
+        \item Try to get the artificial diffusion implemented:
+            \begin{equation}
+                \del \cdot \mathbf{t} = \del \cdot \mathbf{Q} \stackrel{\text{\small 1D}}{=} \mu \frac{\diffd v}{dx}
+                \label{eq:diffusion}
+            \end{equation}
+            with $\mu = \rho c_s \lambda$ and $\lambda = \nu \Delta x$.
+        \item Don't forget that there's no such thing as negative density
+    \end{enumerate}
+
+\end{frame}
+
+\subsection{Stagger code}
+\begin{frame}[fragile,shrink=40]
+    \frametitle{\texttt{stagger.py}}
+    \lstinputlisting{../exercises2/stagger.py}
+\end{frame}
+
+\begin{frame}
+    \frametitle{What happens when you have negative density}
+    \href{http://77.237.250.152/wordpress/studier/blowup_web.mp4}[\beamergotobutton{http://77.237.250.152/wordpress/studier/blowup\_web.mp4}]
+
+    \begin{center}
+\includemedia[
+width=0.8\linewidth,height=0.6\linewidth, % 16:9
+activate=pageopen,
+flashvars={
+modestbranding=1 % no YT logo in control bar
+&autohide=1 % controlbar autohide
+&showinfo=0 % no title and other info before start
+&rel=0          % no related videos after end
+}
+]{}{http://www.youtube.com/v/mKcvXZ2biQI?rel=0}
+    \end{center}
+
+
 \end{frame}
 
 %------------------------------------------------
 
-\begin{frame}
-\Huge{\centerline{The End}}
-\end{frame}
-
-%----------------------------------------------------------------------------------------
 
 \end{document}
