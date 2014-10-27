@@ -1,0 +1,384 @@
+
+\documentclass{beamer}
+\usepackage{media9}
+
+\mode<presentation> {
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\newcommand{\tr}{\, \text{tr}\,}
+\newcommand{\diff}{\ensuremath{\; \text{d}}}
+\newcommand{\diffd}{\ensuremath{\text{d}}}
+\newcommand{\sgn}{\ensuremath{\; \text{sgn}}}
+\newcommand{\UA}{\ensuremath{_{\uparrow}}}
+\newcommand{\RA}{\ensuremath{_{\rightarrow}}}
+\newcommand{\QED}{\left\{ \hfill{\textbf{QED}} \right\}}
+\newcommand{\del}{\ensuremath{\nabla}}
+
+
+%       TITLE PAGE
+
+\title[Staggered grid]{Vectorial approach to momentum and mass conservation equations} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Marius Berge Eide} % Your name
+\institute[ITA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+    AST5110: ITA, UiO\\ % Your institution for the title page
+\medskip
+\textit{m.b.eide@astro.uio.no} % Your email address
+}
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%       PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{Restating the problem}
+%------------------------------------------------
+
+\subsection{Momentum equation from N2L} 
+
+\begin{frame}
+\frametitle{Momentum equation from N2L}
+\begin{itemize}
+    \item Have a volume element $\omega$ with surface $\partial \omega$
+    \item Change in momentum due to internal stresses and external forces:
+\begin{align}
+    \frac{\diffd}{\diffd t} \int_\omega \mathbf{p} \diff v &= \int_{\partial \omega} \mathbf{t} \cdot \mathbf{n} \diff a + \int_\omega \mathbf{F}_{\rm ext} \diff v \\
+    & = \int_\omega \del \cdot \mathbf{t} \diff v + \int_\omega \mathbf{F}_{\rm ext} \diff v
+    \intertext{onto local form:}
+    \frac{\partial \mathbf{p}}{\partial t} + \mathbf{v} \cdot \left( \del \mathbf{p} \right) + \mathbf{p} \left( \del \cdot \mathbf{v} \right)  &= \del \cdot \mathbf{t} + \del p_{\rm gas} + \rho \mathbf{g}
+\end{align}
+    where
+\begin{align}
+    \mathbf{v} \cdot \left( \del \mathbf{p} \right) + \mathbf{p} \left( \del \cdot \mathbf{v} \right) = \del \cdot \left( \mathbf{p} \mathbf{v} \right)
+\end{align}
+\end{itemize}
+
+\end{frame}
+
+\subsection{Equations to be solved}
+
+\begin{frame}
+    \frametitle{To solve}
+
+    Momentum equation
+    \begin{equation}
+        \frac{\partial \mathbf{p}}{\partial t} = - \del \cdot \left( \mathbf{p} \mathbf{v} \right) + \del \cdot \mathbf{t} + \del p_{\rm gas} + \rho \mathbf{g}
+        \label{eq:momentum}
+    \end{equation}
+    Mass continuity equation
+    \begin{equation}
+        \frac{\partial \rho}{\partial t} = - \del \cdot \mathbf{p}
+        \label{eq:density}
+    \end{equation}
+
+\end{frame}
+
+\section{Numerical solution}
+
+\subsection{Solving in time}
+\begin{frame}[shrink=20]
+\frametitle{Solving in time}
+
+
+\begin{itemize}
+    \item Euler:
+    \begin{equation}
+        \mathbf{f}^t (\mathbf{x})=\frac{\partial \mathbf{F}(t, \mathbf{x}) }{\partial t} = 
+        \frac{\mathbf{F}\left( \mathbf{x}, t+\Delta t \right) - \mathbf{F}\left( \mathbf{x}, t \right)}{\Delta t} + \mathcal{O}(\Delta t^2)
+        \label{eq:derivative}
+    \end{equation}
+    giving
+    \begin{equation}
+        \mathbf{F}^{t+1}(\mathbf{x}) \approx \mathbf{F}^t \left( \mathbf{x} \right) + \mathbf{f}^t (\mathbf{x}) \Delta t
+        \label{eq:euler}
+    \end{equation}
+\item Runge-Kutta 4th order
+    \begin{equation}
+        \mathbf{F}^{t+1} = \mathbf{F}^{t} + \frac{\Delta t}{6} \left( \mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4 \right)
+        \label{eq:rk4}
+    \end{equation}
+    where
+    \begin{align*}
+        \mathbf{k}_1 &= \mathbf{F}^t(\mathbf{x}) \\
+        \mathbf{k}_2 &= \mathbf{F}^{t+1/2} \left( \mathbf{x} + \frac{\Delta t }{2} \mathbf{k}_1 \right) \\
+        \mathbf{k}_3 &= \mathbf{F}^{t+1/2} \left( \mathbf{x} + \frac{\Delta t }{2} \mathbf{k}_2 \right) \\
+        \mathbf{k}_4 &= \mathbf{F}^{t+1} \left( \mathbf{x} + \Delta t \mathbf{k}_3 \right)
+    \end{align*}
+
+\end{itemize}
+
+\end{frame}
+
+\subsection{Solving in space}
+\begin{frame}[shrink=20]
+\frametitle{Solving in space}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{staggered.eps}
+    \caption{Staggered grid with cyclic boundary conditions}
+    \label{fig:staggered}
+\end{figure}
+
+Interpolate forward half a step ($\Delta x/2$):
+\begin{align}
+    T^+_x(\mathbf{g}(x, y, z, \cdots)) &=  \mathbf{g}(x+1/2 \Delta x, y, z, \cdots) = \mathbf{g}_{x+1/2} \\
+    &= a(\mathbf{g}_{x} + \mathbf{g}_{x+1}) + b\left( \mathbf{g}_{x-1} \mathbf{g}_{x+2} \right) + c \left( \mathbf{g}_{x-2} + \mathbf{g}_{x+3} \right) \\
+    & = 
+    \begin{bmatrix}
+        a \quad b \quad c
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+        \mathbf{g}_x + \mathbf{g}_{x+1} \\
+        \mathbf{g}_{x-1} + \mathbf{g}_{x+2} \\
+        \mathbf{g}_{x-2} + \mathbf{g}_{x+3}
+    \end{bmatrix}
+    \label{eq:interp}
+\end{align}
+\begin{align*}
+    a &= \frac{1}{2} - b - c; \qquad b = -\frac{1}{24} - 5c; \qquad c = \frac{3}{640} 
+\end{align*}
+
+    
+\end{frame}
+\begin{frame}[shrink=20]
+
+\frametitle{Solving in space}
+
+\begin{align}
+    T^+_x(\mathbf{g}(x, y, z, \cdots)) &=  \mathbf{g}_{x+1/2} = 
+    \begin{bmatrix}
+        a \quad b \quad c
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+        \mathbf{g}_x + \mathbf{g}_{x+1} \\
+        \mathbf{g}_{x-1} + \mathbf{g}_{x+2} \\
+        \mathbf{g}_{x-2} + \mathbf{g}_{x+3}
+    \end{bmatrix}
+\end{align}
+\begin{align}
+    \partial^+_{,x}(\mathbf{g}(x, y, z, \cdots)) &=  \mathbf{g}_{x+1/2}' = 
+    \begin{bmatrix}
+        a' \quad b' \quad c'
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+        \mathbf{g}_x - \mathbf{g}_{x+1} \\
+        \mathbf{g}_{x-1} - \mathbf{g}_{x+2} \\
+        \mathbf{g}_{x-2} - \mathbf{g}_{x+3}
+    \end{bmatrix}
+    \label{eq:deriv}
+\end{align}
+
+\begin{figure}[htpb]
+    \centering
+    \includegraphics[width=\columnwidth]{roll.eps}
+    \caption{Numpy's \texttt{ROLL(array, steps)} causing cyclic boundaries, using this to interpolate and differentiate}
+    \label{fig:roll}
+\end{figure}
+
+\end{frame}
+
+\section{Results}
+\subsection{Stability check}
+\begin{frame}
+    \frametitle{Stability check}
+    \href{http://77.237.250.152/wordpress/studier/stability_web.mp4}[\beamergotobutton{http://77.237.250.152/wordpress/studier/stability\_web.mp4}]
+
+\includemedia[
+  width=\linewidth,
+  height=0.6\linewidth,
+  activate=pageopen,
+  addresource=stability_web.mp4,
+%  flashvars={source=stability_web.mp4}
+  flashvars={flv=stability_web&autoplay=1}
+]{}{player_flv_maxi.swf}
+
+\end{frame}<++>
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Bullet Points}
+\begin{itemize}
+\item Lorem ipsum dolor sit amet, consectetur adipiscing elit
+\item Aliquam blandit faucibus nisi, sit amet dapibus enim tempus eu
+\item Nulla commodo, erat quis gravida posuere, elit lacus lobortis est, quis porttitor odio mauris at libero
+\item Nam cursus est eget velit posuere pellentesque
+\item Vestibulum faucibus velit a augue condimentum quis convallis nulla gravida
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Blocks of Highlighted Text}
+\begin{block}{Block 1}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
+\end{block}
+
+\begin{block}{Block 2}
+Pellentesque sed tellus purus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum quis magna at risus dictum tempor eu vitae velit.
+\end{block}
+
+\begin{block}{Block 3}
+Suspendisse tincidunt sagittis gravida. Curabitur condimentum, enim sed venenatis rutrum, ipsum neque consectetur orci, sed blandit justo nisi ac lacus.
+\end{block}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Multiple Columns}
+\begin{columns}[c] % The "c" option specifies centered vertical alignment while the "t" option is used for top vertical alignment
+
+\column{.45\textwidth} % Left column and width
+\textbf{Heading}
+\begin{enumerate}
+\item Statement
+\item Explanation
+\item Example
+\end{enumerate}
+
+\column{.5\textwidth} % Right column and width
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer lectus nisl, ultricies in feugiat rutrum, porttitor sit amet augue. Aliquam ut tortor mauris. Sed volutpat ante purus, quis accumsan dolor.
+
+\end{columns}
+\end{frame}
+
+%------------------------------------------------
+\section{Second Section}
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Table}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Theorem}
+\begin{theorem}[Mass--energy equivalence]
+$E = mc^2$
+\end{theorem}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
+\frametitle{Verbatim}
+\begin{example}[Theorem Slide Code]
+\begin{verbatim}
+\begin{frame}
+\frametitle{Theorem}
+\begin{theorem}[Mass--energy equivalence]
+$E = mc^2$
+\end{theorem}
+\end{frame}\end{verbatim}
+\end{example}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{Figure}
+Uncomment the code on this slide to include your own image from the same directory as the template .TeX file.
+%\begin{figure}
+%\includegraphics[width=0.8\linewidth]{test}
+%\end{figure}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}[fragile] % Need to use the fragile option when verbatim is used in the slide
+\frametitle{Citation}
+An example of the \verb|\cite| command to cite within the presentation:\\~
+
+This statement requires citation \cite{p1}.
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\frametitle{References}
+\footnotesize{
+\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+\bibitem[Smith, 2012]{p1} John Smith (2012)
+\newblock Title of the publication
+\newblock \emph{Journal Name} 12(3), 45 -- 678.
+\end{thebibliography}
+}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+\Huge{\centerline{The End}}
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
