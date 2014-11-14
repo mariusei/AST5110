@@ -21,10 +21,17 @@ http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/index.html
 
 ## Exercises:
 
-- [Set 1](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric.pdf "Set 1")
+- [Set 1: Solution of the advection equation](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric.pdf "Set 1")
 
-- [Set 2](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric2.pdf "Set 2: Viscosity and staggered grid")
+- [Set 2: Set 2: Viscosity and staggered grid](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric2.pdf "Set 2: Viscosity and staggered grid")
 
-- [Set 3]("Multigrid modelling exercise")
+- [Set 3: Multigrid modelling exercise]("Multigrid modelling exercise")
 
+
+## Set 3 solutions
+*Different grid sizes have results converging at different scales to different structures*
 ![Set 3 solution 1](/exercises3/imgs-0.png)
+*Residuals*
+![Set 3 solution 2](/exercises3/imgs-1.png)
+*Error, compared to analytic solution*
+![Set 3 solution 3](/exercises3/imgs-2.png)
