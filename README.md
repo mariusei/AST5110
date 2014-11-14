@@ -22,3 +22,9 @@ http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/index.html
 ## Exercises:
 
 - [Set 1](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric.pdf "Set 1")
+
+- [Set 2](http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/undervisningsmateriale/exercise-numeric2.pdf "Set 2: Viscosity and staggered grid")
+
+- [Set 3]("Multigrid modelling exercise")
+
+![Set 3 solution 1](/exercises3/imgs-0.png)
