@@ -30,8 +30,14 @@ http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/index.html
 
 ## Set 3 solutions
 *Different grid sizes have results converging at different scales to different structures*
+
 ![Set 3 solution 1](/exercises3/imgs-0.png)
+
 *Residuals*
+
 ![Set 3 solution 2](/exercises3/imgs-1.png)
+
+
 *Error, compared to analytic solution*
+
 ![Set 3 solution 3](/exercises3/imgs-2.png)
