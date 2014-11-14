@@ -38,6 +38,6 @@ http://www.uio.no/studier/emner/matnat/astro/AST5110/h14/index.html
 ![Set 3 solution 2](/exercises3/imgs-1.png)
 
 
-*Error, compared to analytic solution*
+*Relative error, compared to analytic solution*
 
 ![Set 3 solution 3](/exercises3/imgs-2.png)
